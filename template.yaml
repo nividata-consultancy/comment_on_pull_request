@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  statusgrid_demo
+
+  Sample SAM Template for statusgrid demo
+
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  CommentOnPullRequestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: comment_on_pull_request/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      FunctionName: comment_on_pull_request_from_cloudwatch
+      Policies:
+        - CloudWatchLogsFullAccess
+        - SecretsManagerReadWrite
+      Events:
+        CommentOnPullRequest:
+          Type: Api
+          Properties:
+            Path: /comment
+            Method: post
+
+Outputs:
+  CommentOnPullRequestApi:
+    Description: "API Gateway endpoint URL for Prod stage for Comment On Pull Request function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/comment/"
+  CommentOnPullRequestFunction:
+    Description: "Comment on Pull Request Lambda Function ARN"
+    Value: !GetAtt CommentOnPullRequestFunction.Arn
+  CommentOnPullRequestFunctionIamRole:
+    Description: "Implicit IAM Role created for Comment On PullRequest function"
+    Value: !GetAtt CommentOnPullRequestFunctionRole.Arn
