@@ -1,8 +1,6 @@
-import os
 import json
 from datetime import datetime, timedelta
 import time
-
 import base64
 import boto3
 from botocore.exceptions import ClientError
@@ -13,7 +11,8 @@ cloudwatch_client = boto3.client('logs')
 
 
 def lambda_handler(event, context):
-    """Lambda function to process cloudwatch logs and auto comment on pull request
+    """
+    Lambda function to process cloudwatch logs and auto comment on pull request
     
         Parameters
         ----------
@@ -24,10 +23,16 @@ def lambda_handler(event, context):
             Lambda Context runtime methods and attributes
     """
     pr_handler = PullRequestHandler()
-    # Execute the comment URL
+    # Extract comment URL from the event
     comment_url = pr_handler.extract_comment_url(event)
-    pr_handler.comment_on_pull_request(comment_url)
-    return {"status": 200, "message": "Comment sent successfully"}
+
+    # Fetch latest 10 logs from cloudwatch
+    logs = pr_handler.get_logs_from_cloudwatch(24, 20)
+
+    # POST request on comment url
+    pr_handler.comment_on_pull_request(comment_url, logs)
+
+    return {"status": 201, "message": "Comment sent successfully"}
 
 
 class PullRequestHandler:
@@ -39,31 +44,29 @@ class PullRequestHandler:
     def __init__(self):
         self.AUTH_TOKEN = self.get_secret('GITHUB_AUTH_TOKEN')
 
-    def comment_on_pull_request(self, url):
-        # Fetch logs from the S3
-        single_log = self.get_logs_from_cloudwatch()
-        # POST request on comment url
-        self.execute_url(url, single_log)
-
     @staticmethod
     def extract_comment_url(event):
         body = json.loads(event["body"])
         return body["pull_request"]["comments_url"]
 
-    def execute_url(self, url, comment_data):
-        json_data = json.dumps({"body": f"Comment from Cloudwatch: {comment_data}"})
-        requests.post(url, data=json_data, headers=self.get_headers())
+    def get_logs_from_cloudwatch(self, time_since, num_of_logs):
+        """
+        Parameters
+        ----------
+        time_since: Time since query will fetch the logs. Refers to hour magnitude
+        num_of_logs: Number of logs to fetch from the response
 
-    def get_headers(self):
-        return {"Authorization": f"token {self.AUTH_TOKEN}"}
+        Returns
+        -------
+        result: Combined number of logs
 
-    def get_logs_from_cloudwatch(self):
+        """
         query = self.CLOUDWATCH_QUERY
         log_group = self.CLOUDWATCH_LOG_GROUP
         
         start_query_response = cloudwatch_client.start_query(
             logGroupName=log_group,
-            startTime=int((datetime.today() - timedelta(hours=24)).timestamp()),
+            startTime=int((datetime.today() - timedelta(hours=time_since)).timestamp()),
             endTime=int(datetime.now().timestamp()),
             queryString=query,
         )
@@ -77,7 +80,7 @@ class PullRequestHandler:
             )
 
         result = ""
-        for i in range(20):
+        for i in range(num_of_logs):
             try:
                 log = response['results'][i]
                 result += log[0]['value']
@@ -85,7 +88,35 @@ class PullRequestHandler:
                 pass
         return result if result else "No data available"
 
+    def comment_on_pull_request(self, url, comment_text):
+        """
+
+        Parameters
+        ----------
+        url: Comment URL
+        comment_text: Text of the comment
+
+        Returns
+        -------
+
+        """
+        json_data = json.dumps({"body": f"Comment from Cloudwatch: {comment_text}"})
+        requests.post(url, data=json_data, headers=self.get_headers())
+
+    def get_headers(self):
+        return {"Authorization": f"token {self.AUTH_TOKEN}"}
+
     def get_secret(self, env_name):
+        """
+
+        Parameters
+        ----------
+        env_name: Name of the environment variable to fetch
+
+        Returns
+        -------
+
+        """
         secret_name = self.SECRET_NAME
         region_name = self.REGION
 
