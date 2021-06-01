@@ -45,7 +45,7 @@ You can find your API Gateway Endpoint URL in the output values displayed after 
 Build your application with the `sam build --use-container` command.
 
 ```bash
-statusgrid_demo$ sam build --use-container
+venv$ sam build --use-container
 ```
 
 The SAM CLI installs dependencies defined in `comment_on_pull_request/requirements.txt`, creates a deployment package, and saves it in the `.aws-sam/build` folder.
@@ -61,8 +61,8 @@ venv$ sam local invoke CommentOnPullRequestFunction --event events/event.json
 The SAM CLI can also emulate your application's API. Use the `sam local start-api` to run the API locally on port 3000.
 
 ```bash
-statusgrid_demo$ sam local start-api
-statusgrid_demo$ curl http://localhost:3000/
+venv$ sam local start-api
+venv$ curl http://localhost:3000/
 ```
 
 The SAM CLI reads the application template to determine the API's routes and the functions that they invoke. The `Events` property on each function's definition includes the route and method for each path.
@@ -83,7 +83,7 @@ To simplify troubleshooting, SAM CLI has a command called `sam logs`. `sam logs`
 `NOTE`: This command works for all AWS Lambda functions; not just the ones you deploy using SAM.
 
 ```bash
-statusgrid_demo$ sam logs -n CommentOnPullRequestFunction --stack-name statusgrid_demo --tail
+venv$ sam logs -n CommentOnPullRequestFunction --stack-name comment_on_pull_request_stack --tail
 ```
 
 You can find more information and examples about filtering Lambda function logs in the [SAM CLI Documentation](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-logging.html).
@@ -93,12 +93,12 @@ You can find more information and examples about filtering Lambda function logs 
 Tests are defined in the `tests` folder in this project. Use PIP to install the test dependencies and run tests.
 
 ```bash
-statusgrid_demo$ pip install -r tests/requirements.txt --user
+venv$ pip install -r tests/requirements.txt --user
 # unit test
-statusgrid_demo$ python -m pytest tests/unit -v
+venv$ python -m pytest tests/unit -v
 # integration test, requiring deploying the stack first.
 # Create the env variable AWS_SAM_STACK_NAME with the name of the stack we are testing
-statusgrid_demo$ AWS_SAM_STACK_NAME=<stack-name> python -m pytest tests/integration -v
+venv$ AWS_SAM_STACK_NAME=<stack-name> python -m pytest tests/integration -v
 ```
 
 ## Cleanup
@@ -106,5 +106,5 @@ statusgrid_demo$ AWS_SAM_STACK_NAME=<stack-name> python -m pytest tests/integrat
 To delete the sample application that you created, use the AWS CLI. Assuming you used your project name for the stack name, you can run the following:
 
 ```bash
-aws cloudformation delete-stack --stack-name statusgrid_demo
+aws cloudformation delete-stack --stack-name comment_on_pull_request_stack
 ```
