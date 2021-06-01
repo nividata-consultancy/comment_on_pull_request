@@ -12,6 +12,9 @@ The application uses several AWS resources, including Lambda functions and an AP
 If you prefer to use an integrated development environment (IDE) to build and test your application, you can use the AWS Toolkit.  
 The AWS Toolkit is an open source plug-in for popular IDEs that uses the SAM CLI to build and deploy serverless applications on AWS. The AWS Toolkit also adds a simplified step-through debugging experience for Lambda function code. See the following links to get started.
 
+## Prerequisites
+- Store the secrets name as `github-authtoken` and configure envrionment variable name as `GITHUB_AUTH_TOKEN`
+- This lamda function expects cloudwatch group name as `/aws/lambda/comment_on_pull_request`. However this can be configurable in the code.
 
 ## Deploy the sample application
 

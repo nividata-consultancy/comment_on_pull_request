@@ -26,7 +26,7 @@ def lambda_handler(event, context):
     # Extract comment URL from the event
     comment_url = pr_handler.extract_comment_url(event)
 
-    # Fetch latest 10 logs from cloudwatch
+    # Fetch latest logs from cloudwatch
     logs = pr_handler.get_logs_from_cloudwatch(24, 20)
 
     # POST request on comment url
